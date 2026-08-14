@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BalanceCard } from "@/components/BalanceCard";
 import { DepositForm } from "@/components/DepositForm";
+import { LiveTestnetPanel } from "@/components/LiveTestnetPanel";
 import { SendForm } from "@/components/SendForm";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { WalletConnect } from "@/components/WalletConnect";
@@ -13,6 +14,7 @@ import type { AssetCode } from "@/lib/types";
 export default function WalletPage() {
   const [assets, setAssets] = useState(wallet.getAssets());
   const [transactions, setTransactions] = useState(wallet.getTransactions());
+  const [liveAddress, setLiveAddress] = useState<string | null>(null);
 
   function refresh() {
     setAssets([...wallet.getAssets()]);
@@ -37,11 +39,17 @@ export default function WalletPage() {
   return (
     <main>
       <div className="banner">
-        Demo data only — not connected to a deployed contract. See{" "}
-        <code>frontend/src/lib/mockWallet.ts</code> for the TODO(chain) markers.
+        The balances, deposit/send/withdraw forms, and history below run on
+        demo data — see <code>frontend/src/lib/mockWallet.ts</code>. The
+        &quot;Live testnet&quot; card is the exception: it submits real
+        signed transactions against the deployed contracts in{" "}
+        <code>deployments/testnet.json</code>.
       </div>
 
-      <WalletConnect />
+      <div className="grid-2">
+        <WalletConnect onAddressChange={setLiveAddress} />
+        <LiveTestnetPanel address={liveAddress} />
+      </div>
 
       <div className="grid-2" style={{ marginTop: 16 }}>
         <BalanceCard assets={assets} />
