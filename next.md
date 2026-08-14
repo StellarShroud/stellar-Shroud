@@ -98,13 +98,12 @@ say so, and it becomes the next `plan.md` step.
 
 ## Tooling / DX
 
-- **CI** — nothing currently runs `cargo test`, the staged wasm build,
-  or `npm run build`/`typecheck` on push. Cheap to add (GitHub Actions),
-  high value: this repo has already shown real bugs only surface
-  outside unit tests (the two testnet-deployment fixes), so CI should
-  at minimum run the full native test suite plus both wasm targets and
-  the frontend build on every push, even though it can't catch the
-  class of bug that testnet did.
+- ~~**CI**~~ Done: `.github/workflows/ci.yml`, two jobs -- `contracts`
+  (`cargo test --workspace`, then the staged `wasm32v1-none` build) and
+  `frontend` (`npm run typecheck`, `npm run build`). Runs on every push
+  and PR to `main`. Doesn't catch the class of bug that only surfaced
+  on real testnet deployment (see the pause-feature and earlier
+  commits) -- that still needs an actual deployment to check.
 - **`CONTRIBUTING.md`** — worth having before inviting outside
   contributors (e.g. via Stellar Wave, see below), so issue-driven
   contributions have a place to point to for the build/test workflow
@@ -138,7 +137,7 @@ blocked on the ZK decision).
 ## Suggested order
 
 1. ~~Pause/circuit breaker on `shroud_pool`~~ Done.
-2. CI (small, protects everything after it)
+2. ~~CI~~ Done.
 3. Note persistence in the frontend (medium, closes the most visible
    gap in the "Live testnet" demo)
 4. `CONTRIBUTING.md` + a first batch of scoped GitHub issues
