@@ -26,6 +26,11 @@ import { NETWORK_PASSPHRASE, RPC_URL } from "./network";
 
 const server = new rpc.Server(RPC_URL);
 
+export async function getLatestLedgerSequence(): Promise<number> {
+  const { sequence } = await server.getLatestLedger();
+  return sequence;
+}
+
 export function scAddress(address: string): xdr.ScVal {
   return new Address(address).toScVal();
 }
