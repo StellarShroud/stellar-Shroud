@@ -13,18 +13,18 @@
 
 pub(crate) mod asset_registry_contract {
     soroban_sdk::contractimport!(
-        file = "../../target/wasm32-unknown-unknown/release/asset_registry.wasm"
+        file = "../../target/wasm32v1-none/release/asset_registry.wasm"
     );
 }
 
 pub(crate) mod nullifier_registry_contract {
     soroban_sdk::contractimport!(
-        file = "../../target/wasm32-unknown-unknown/release/nullifier_registry.wasm"
+        file = "../../target/wasm32v1-none/release/nullifier_registry.wasm"
     );
 }
 
 pub(crate) mod commitment_tree_contract {
     soroban_sdk::contractimport!(
-        file = "../../target/wasm32-unknown-unknown/release/commitment_tree.wasm"
+        file = "../../target/wasm32v1-none/release/commitment_tree.wasm"
     );
 }
