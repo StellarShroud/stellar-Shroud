@@ -38,3 +38,8 @@ pub(crate) fn publish_withdraw(
         (recipient, amount, nullifier),
     );
 }
+
+pub(crate) fn publish_paused(env: &Env, paused: bool) {
+    env.events()
+        .publish((Symbol::new(env, "paused"),), paused);
+}

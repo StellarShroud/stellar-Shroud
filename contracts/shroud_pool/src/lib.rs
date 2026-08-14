@@ -50,6 +50,33 @@ impl ShroudPool {
         Ok(())
     }
 
+    /// Circuit breaker: blocks deposit/transfer/withdraw. Admin-only.
+    /// There's no upgrade mechanism on this contract yet, so if a bug
+    /// like the two found during testnet deployment (see git history)
+    /// turns up again, pausing is the only mitigation short of every
+    /// user racing to withdraw before an exploit does.
+    pub fn pause(env: Env) -> Result<(), Error> {
+        let admin = storage::get_admin(&env)?;
+        admin.require_auth();
+
+        storage::set_paused(&env, true);
+        events::publish_paused(&env, true);
+        Ok(())
+    }
+
+    pub fn unpause(env: Env) -> Result<(), Error> {
+        let admin = storage::get_admin(&env)?;
+        admin.require_auth();
+
+        storage::set_paused(&env, false);
+        events::publish_paused(&env, false);
+        Ok(())
+    }
+
+    pub fn is_paused(env: Env) -> bool {
+        storage::is_paused(&env)
+    }
+
     /// Deposit a supported Stellar asset into the shielded pool, recording
     /// `commitment` as the resulting private note.
     pub fn deposit(
@@ -59,6 +86,9 @@ impl ShroudPool {
         amount: i128,
         commitment: BytesN<32>,
     ) -> Result<BytesN<32>, Error> {
+        if storage::is_paused(&env) {
+            return Err(Error::Paused);
+        }
         let registries = storage::get_registries(&env)?;
 
         let asset_client = asset_registry_contract::Client::new(&env, &registries.asset_registry);
@@ -100,6 +130,9 @@ impl ShroudPool {
         output_commitment: BytesN<32>,
         proof: ShroudProof,
     ) -> Result<BytesN<32>, Error> {
+        if storage::is_paused(&env) {
+            return Err(Error::Paused);
+        }
         let registries = storage::get_registries(&env)?;
 
         let tree_client = commitment_tree_contract::Client::new(&env, &registries.commitment_tree);
@@ -136,6 +169,9 @@ impl ShroudPool {
         nullifier: BytesN<32>,
         proof: ShroudProof,
     ) -> Result<(), Error> {
+        if storage::is_paused(&env) {
+            return Err(Error::Paused);
+        }
         let registries = storage::get_registries(&env)?;
 
         let asset_client = asset_registry_contract::Client::new(&env, &registries.asset_registry);

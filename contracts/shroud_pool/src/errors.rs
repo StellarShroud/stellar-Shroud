@@ -9,4 +9,5 @@ pub enum Error {
     UnknownRoot = 4,
     InvalidProof = 5,
     AlreadySpent = 6,
+    Paused = 7,
 }

@@ -228,3 +228,87 @@ fn shielded_transfer_moves_note_without_touching_token_balance() {
     assert_ne!(new_root, root);
     assert_eq!(s.token.balance(&s.pool.address), 3_000);
 }
+
+#[test]
+fn is_paused_reflects_state() {
+    let s = setup();
+    assert!(!s.pool.is_paused());
+
+    s.pool.pause();
+    assert!(s.pool.is_paused());
+
+    s.pool.unpause();
+    assert!(!s.pool.is_paused());
+}
+
+#[test]
+fn pause_blocks_deposit() {
+    let s = setup();
+    s.pool.pause();
+
+    let commitment = BytesN::from_array(&s.env, &[13u8; 32]);
+    let result = s
+        .pool
+        .try_deposit(&s.depositor, &s.asset_id, &1_000, &commitment);
+    assert_eq!(result, Err(Ok(Error::Paused)));
+}
+
+#[test]
+fn pause_blocks_withdraw() {
+    let s = setup();
+
+    let commitment = BytesN::from_array(&s.env, &[14u8; 32]);
+    let root = s
+        .pool
+        .deposit(&s.depositor, &s.asset_id, &1_000, &commitment);
+
+    s.pool.pause();
+
+    let recipient = Address::generate(&s.env);
+    let nullifier = BytesN::from_array(&s.env, &[15u8; 32]);
+    let proof = ShroudProof { valid: true };
+
+    let result = s.pool.try_withdraw(
+        &recipient,
+        &s.asset_id,
+        &1_000,
+        &root,
+        &nullifier,
+        &proof,
+    );
+    assert_eq!(result, Err(Ok(Error::Paused)));
+}
+
+#[test]
+fn pause_blocks_transfer() {
+    let s = setup();
+
+    let commitment = BytesN::from_array(&s.env, &[16u8; 32]);
+    let root = s
+        .pool
+        .deposit(&s.depositor, &s.asset_id, &1_000, &commitment);
+
+    s.pool.pause();
+
+    let nullifier = BytesN::from_array(&s.env, &[17u8; 32]);
+    let output_commitment = BytesN::from_array(&s.env, &[18u8; 32]);
+    let proof = ShroudProof { valid: true };
+
+    let result = s
+        .pool
+        .try_transfer(&root, &nullifier, &output_commitment, &proof);
+    assert_eq!(result, Err(Ok(Error::Paused)));
+}
+
+#[test]
+fn unpause_restores_deposit() {
+    let s = setup();
+    s.pool.pause();
+    s.pool.unpause();
+
+    let commitment = BytesN::from_array(&s.env, &[19u8; 32]);
+    let new_root = s
+        .pool
+        .deposit(&s.depositor, &s.asset_id, &1_000, &commitment);
+    assert_ne!(new_root, BytesN::from_array(&s.env, &[0u8; 32]));
+}

@@ -8,6 +8,7 @@ enum DataKey {
     AssetRegistry,
     NullifierRegistry,
     CommitmentTree,
+    Paused,
 }
 
 pub(crate) struct Registries {
@@ -18,6 +19,24 @@ pub(crate) struct Registries {
 
 pub(crate) fn has_admin(env: &Env) -> bool {
     env.storage().instance().has(&DataKey::Admin)
+}
+
+pub(crate) fn get_admin(env: &Env) -> Result<Address, Error> {
+    env.storage()
+        .instance()
+        .get(&DataKey::Admin)
+        .ok_or(Error::NotInitialized)
+}
+
+pub(crate) fn is_paused(env: &Env) -> bool {
+    env.storage()
+        .instance()
+        .get(&DataKey::Paused)
+        .unwrap_or(false)
+}
+
+pub(crate) fn set_paused(env: &Env, paused: bool) {
+    env.storage().instance().set(&DataKey::Paused, &paused);
 }
 
 pub(crate) fn set_config(env: &Env, admin: &Address, registries: &Registries) {
