@@ -46,7 +46,8 @@ card is real: it connects Freighter and submits real signed
 deployment below.
 
 See [`plan.md`](./plan.md) for the current implementation scope, step by
-step, including what's explicitly out of scope and why.
+step, including what's explicitly out of scope and why. See
+[`next.md`](./next.md) for the backlog of candidate next features.
 
 ## Live on testnet
 

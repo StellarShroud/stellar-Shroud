@@ -1,0 +1,144 @@
+# StellarShroud — Next Up
+
+`plan.md` documents what's been built and why. This is the opposite
+direction: a backlog of candidate features, grouped by area, each with
+the reasoning behind it so a pick can be made without re-deriving
+context. Nothing here is committed to — pick an item (or several) and
+say so, and it becomes the next `plan.md` step.
+
+## Contracts
+
+- **Pause / circuit breaker on `shroud_pool`** — an admin-gated
+  `pause()`/`unpause()` that blocks deposit/transfer/withdraw. Right now
+  a bug found post-deployment (see the two testnet fixes in the commit
+  history) has no mitigation short of redeploying. Small, high value —
+  should probably happen before any real funds beyond test XLM touch
+  the pool.
+- **Second real asset registered on testnet** — register a real
+  anchor-issued test asset (not just native XLM) to prove
+  `asset_registry` actually gates multi-asset support the way
+  PROJECT.md describes, not just in unit tests. Needs issuing a test
+  asset + trustline, more setup than XLM but not hard.
+- **Admin rotation** — `asset_registry`/`shroud_pool` admin is fixed at
+  `initialize` with no way to transfer it. Fine for a testnet demo, a
+  real gap for anything longer-lived.
+- **Batch withdraw/deposit** — right now each note is one transaction.
+  Batching would cut fees for wallets managing many notes. Low
+  priority until there's a wallet UX that actually accumulates many
+  notes.
+- **Events consumed by an indexer, not just the frontend** — `deposit`/
+  `transfer`/`withdraw` events exist but nothing currently indexes them
+  for e.g. computing total shielded volume without re-simulating.
+  Relevant once the Anchor Dashboard needs real numbers (see Frontend
+  below).
+
+## Cryptography (Phase 2 completion — blocked on one decision)
+
+- **Pick the proving system.** Still the biggest open decision — see
+  `plan.md`'s open question. Groth16 (arkworks) vs. Plonk/Halo2 is a
+  real tradeoff (trusted setup + tiny proofs vs. no ceremony + costlier
+  on-chain verification), and Soroban's compute budget makes the
+  on-chain verification cost matter more than it would on most chains.
+  Everything else in this section is blocked on this.
+- **Circuit for the withdraw/transfer statement** — once a system is
+  picked: constrain "I know a valid unspent note, it's in the current
+  Merkle tree, the nullifier is correctly derived, amounts balance."
+  PROJECT.md's Proof Circuit section already specifies the constraints;
+  this is implementing them in the chosen DSL.
+- **On-chain verifier in `shroud_pool`** — replace `ShroudProof.valid:
+  bool` with a real proof + public inputs, and replace the `TODO(zk)`
+  checks with actual verification. This is the change every other
+  `TODO(zk)` marker in the codebase is waiting on.
+- **Prover in the browser or a relayer service** — generating a real
+  proof client-side (WASM-compiled circuit) vs. via a relayer the
+  wallet sends private inputs to. Affects the frontend's `chain.ts`
+  significantly either way.
+
+## Frontend
+
+- **Wire shielded transfer (Send) to the real deployment** — currently
+  the one flow left mocked even in the "Live testnet" card, because it
+  needs constructing an output note for a recipient whose secret this
+  wallet doesn't hold. Real version needs either a recipient public key
+  exchange or a relayer pattern. Worth scoping once the ZK circuit
+  exists, since a real proof will be required for `transfer` too.
+- **Persist notes across reloads** — `LiveTestnetPanel` holds shielded
+  notes in React state only; refreshing the page loses them (and with
+  them, the ability to withdraw). Needs at minimum `localStorage`
+  persistence, ideally encrypted with a key derived from the connected
+  wallet.
+- **Wire Anchor/Auditor dashboards to real chain reads** — both still
+  show `mockWallet.ts` data. `asset_registry`/`auditor_registry` reads
+  are simple (`readContract`, already have the pattern from
+  `LiveTestnetPanel`); the "shielded volume" numbers need the indexer
+  idea above, or a simpler running-total read from `shroud_pool` if one
+  gets added there.
+- **Real transaction history from chain events** — replace
+  `mockWallet.getTransactions()` with `server.getEvents()` filtered to
+  the connected address, for the Live testnet section specifically.
+- **Multi-asset live support** — once a second asset is registered on
+  testnet (see Contracts), extend `network.ts`/`chain.ts` beyond the
+  single `XLM_ASSET_ID` constant.
+
+## SDK (Phase 6 — not started)
+
+- **Extract `frontend/src/lib/{chain,notes,soroban}.ts` into a
+  standalone package** — this is already a rough draft of the shape
+  PROJECT.md's SDK section describes (`ShroudWallet::deposit()`,
+  `.generate_proof()`, `.submit()`). Pulling it out of `frontend/` into
+  its own package (`sdk/typescript` or similar) makes it reusable by
+  anything other than this demo UI, and is a natural checkpoint once
+  the note-persistence and real-proof pieces above land.
+- **Rust SDK crate** (`sdk/rust`, per PROJECT.md's Project Structure) —
+  mirrors the TypeScript one for native/CLI wallets. Lower priority
+  than the TypeScript version since nothing in this repo currently
+  needs it.
+
+## Tooling / DX
+
+- **CI** — nothing currently runs `cargo test`, the staged wasm build,
+  or `npm run build`/`typecheck` on push. Cheap to add (GitHub Actions),
+  high value: this repo has already shown real bugs only surface
+  outside unit tests (the two testnet-deployment fixes), so CI should
+  at minimum run the full native test suite plus both wasm targets and
+  the frontend build on every push, even though it can't catch the
+  class of bug that testnet did.
+- **`CONTRIBUTING.md`** — worth having before inviting outside
+  contributors (e.g. via Stellar Wave, see below), so issue-driven
+  contributions have a place to point to for the build/test workflow
+  instead of reconstructing it from the README.
+
+## Docs (per PROJECT.md's `docs/` layout — none of these exist yet)
+
+- `docs/architecture.md` — PROJECT.md already has the content in prose
+  form (Core Idea, Final Architecture sections); this would be the
+  pulled-out, versioned reference.
+- `docs/threat-model.md` — PROJECT.md's Threat Model section, expanded
+  with what's now concretely true post-deployment (e.g. the admin/auth
+  bugs found are a real data point for "what can go wrong").
+- `docs/cryptography.md` — write once the proving system is chosen;
+  premature before then.
+- `docs/auditor-disclosure.md` — write alongside the Phase 4 disclosure
+  work; premature now since `auditor_registry` only tracks keys, not
+  disclosure.
+
+## If you're prioritizing for Stellar Wave specifically
+
+Given the earlier conversation about applying to Stellar Wave, the
+highest-leverage items to do *first* are the ones that make this repo
+look like a real project outside contributors can productively land
+PRs in: **CI**, **`CONTRIBUTING.md`**, and turning a handful of the
+items above into actual scoped GitHub issues (the pause/circuit-breaker
+contract feature and the note-persistence frontend feature are both
+good "Medium" complexity candidates — self-contained, testable, not
+blocked on the ZK decision).
+
+## Suggested order
+
+1. Pause/circuit breaker on `shroud_pool` (small, real risk reduction)
+2. CI (small, protects everything after it)
+3. Note persistence in the frontend (medium, closes the most visible
+   gap in the "Live testnet" demo)
+4. `CONTRIBUTING.md` + a first batch of scoped GitHub issues
+5. Proving-system decision, then the rest of Cryptography/Contracts/SDK
+   unblocks from there
