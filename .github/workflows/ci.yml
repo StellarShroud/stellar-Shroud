@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  contracts:
+    name: Contracts (test + wasm build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run native tests
+        run: cargo test --workspace
+
+      # shroud_pool imports the other four contracts' compiled wasm via
+      # contractimport! (see contracts/shroud_pool/src/clients.rs) --
+      # depending on their Rust source instead links their wasm-exported
+      # functions into shroud_pool's own binary and collides. So the
+      # leaf contracts must build first, same order as README.md.
+      - name: Build leaf contracts (wasm32v1-none)
+        run: |
+          cargo build -p asset-registry -p nullifier-registry -p commitment-tree -p auditor-registry \
+            --target wasm32v1-none --release
+
+      - name: Build shroud_pool (wasm32v1-none)
+        run: cargo build -p shroud-pool --target wasm32v1-none --release
+
+  frontend:
+    name: Frontend (typecheck + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
