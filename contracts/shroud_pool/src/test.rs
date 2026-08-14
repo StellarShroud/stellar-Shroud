@@ -6,7 +6,7 @@ use commitment_tree::{CommitmentTree, CommitmentTreeClient};
 use nullifier_registry::{NullifierRegistry, NullifierRegistryClient};
 use soroban_sdk::testutils::Address as _;
 use soroban_sdk::token::{StellarAssetClient, TokenClient};
-use soroban_sdk::Env;
+use soroban_sdk::{Env, Symbol};
 
 struct TestSetup<'a> {
     env: Env,
