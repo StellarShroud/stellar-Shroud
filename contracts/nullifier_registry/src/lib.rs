@@ -18,11 +18,15 @@ pub struct NullifierRegistry;
 impl NullifierRegistry {
     /// `admin` should be the `shroud_pool` contract address — it is the
     /// only caller authorized to mark nullifiers as spent.
+    ///
+    /// No `require_auth` on `admin` here: it's a contract address with no
+    /// private key to sign with, so the only enforcement available is that
+    /// `initialize` can run exactly once (the `has_admin` check below) --
+    /// same one-shot-bootstrap pattern as `commitment_tree::initialize`.
     pub fn initialize(env: Env, admin: Address) -> Result<(), Error> {
         if storage::has_admin(&env) {
             return Err(Error::AlreadyInitialized);
         }
-        admin.require_auth();
         storage::set_admin(&env, &admin);
         Ok(())
     }

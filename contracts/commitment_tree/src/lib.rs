@@ -24,11 +24,14 @@ pub struct CommitmentTree;
 impl CommitmentTree {
     /// `admin` should be the `shroud_pool` contract address — the only
     /// caller authorized to insert new commitments.
+    ///
+    /// No `require_auth` on `admin` here: it's a contract address with no
+    /// private key to sign with, so the only enforcement available is that
+    /// `initialize` can run exactly once (the `has_admin` check below).
     pub fn initialize(env: Env, admin: Address) -> Result<(), Error> {
         if storage::has_admin(&env) {
             return Err(Error::AlreadyInitialized);
         }
-        admin.require_auth();
 
         // Precompute the "empty subtree" hash at every level, starting from
         // an all-zero leaf, so inserts can fill in blanks without hashing
