@@ -8,12 +8,14 @@ say so, and it becomes the next `plan.md` step.
 
 ## Contracts
 
-- **Pause / circuit breaker on `shroud_pool`** — an admin-gated
-  `pause()`/`unpause()` that blocks deposit/transfer/withdraw. Right now
-  a bug found post-deployment (see the two testnet fixes in the commit
-  history) has no mitigation short of redeploying. Small, high value —
-  should probably happen before any real funds beyond test XLM touch
-  the pool.
+- ~~**Pause / circuit breaker on `shroud_pool`**~~ Done: admin-gated
+  `pause()`/`unpause()`/`is_paused()`, blocking deposit/transfer/withdraw
+  while paused. Required redeploying `shroud_pool` (no upgrade
+  mechanism), which cascaded to `nullifier_registry`/`commitment_tree`
+  since their admin is the pool's contract address — see
+  `deployments/testnet.json`. Verified for real on testnet: paused,
+  confirmed a deposit attempt was rejected with `Error::Paused`,
+  unpaused, confirmed deposit succeeded again. 5 new tests, 36 total.
 - **Second real asset registered on testnet** — register a real
   anchor-issued test asset (not just native XLM) to prove
   `asset_registry` actually gates multi-asset support the way
@@ -135,7 +137,7 @@ blocked on the ZK decision).
 
 ## Suggested order
 
-1. Pause/circuit breaker on `shroud_pool` (small, real risk reduction)
+1. ~~Pause/circuit breaker on `shroud_pool`~~ Done.
 2. CI (small, protects everything after it)
 3. Note persistence in the frontend (medium, closes the most visible
    gap in the "Live testnet" demo)

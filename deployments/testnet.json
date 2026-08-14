@@ -5,10 +5,10 @@
   "admin": "GDSDRG6PHZGDC7JJJ6ZCXZOWMNZUVNO3K5UZPWKRXA6SDPTQWM6BETSU",
   "contracts": {
     "assetRegistry": "CDASR4RBML7PNEG3XVN2BD7FNR5XX3NZMFNWGMILJQXCPTWSA7B64DS5",
-    "nullifierRegistry": "CDALY6GLLIZA2PCOTUIMNDAUZFR4J5GT2OT44OUY7LJ4E777IIXSXIHK",
-    "commitmentTree": "CD7ZS5OWIHD57HNKXZDJLHJ6DTZNFXS3ZPIQI5VFXTR42YEULLBRZLP3",
+    "nullifierRegistry": "CAGMMCCSHZNDI4EI7GLGGWCTKHUGVJEOSAQ7H2S7KJOIW7BNWADSJRH5",
+    "commitmentTree": "CDQG33EO6C6KE7ZXXHQJ57OIAPYCVAXRG4R65RZTNCCBDMXVT7JXPLOZ",
     "auditorRegistry": "CBXGYPAV4LXSLZ7CAS4FTMMEV4HXU5DIKNDBTVNQU62LX7KKJGGZ5Y5G",
-    "shroudPool": "CDJBRZV6HTMLO4U4VPK5SF3GBEJV77CZXALWAGJXTTFKADM3ABTRXWJQ"
+    "shroudPool": "CBXDMFY3YZM2SDOGC2DYN2B7DSKPZ7VBQTUAGLVEIOI27FEQFRJ7EJTK"
   },
   "supportedAssets": [
     {
@@ -21,6 +21,15 @@
     "date": "2026-08-14",
     "flow": "approve -> deposit -> withdraw",
     "depositTx": "ffdad6ea5bca045174e6fb13f41f56cfa3413ebafe465c40ff4d3ad60a0af646",
-    "withdrawTx": "f900cc6fcaed239c4221a0d590a295ce54e70a1cca973ac5f81b157ec5c073f5"
+    "withdrawTx": "f900cc6fcaed239c4221a0d590a295ce54e70a1cca973ac5f81b157ec5c073f5",
+    "note": "Recorded against a prior shroud_pool deployment; superseded by the redeploy below, but the flow itself is unchanged and still applies."
+  },
+  "redeployedForPauseFeature": {
+    "date": "2026-08-14",
+    "reason": "shroud_pool has no upgrade mechanism, so adding pause()/unpause() required a fresh deployment -- which cascaded to nullifier_registry and commitment_tree since their admin is the pool's contract address.",
+    "pauseTx": "5ca48614e4e025f24e11fd7bf436ebf9bae908bd6e4b43e3c155bc3b3509d083",
+    "depositBlockedWhilePausedTx": "confirmed via simulation failure, HostError Contract #7 (Error::Paused) -- rejected before submission, so no tx hash",
+    "unpauseTx": "93735bcb884ea5784565a4448814ee2c60aa7751bb8d6b0f712edc7834f5b17f",
+    "depositAfterUnpauseTx": "02fa02782467ee726d247b701de94332183e26f8d046a146b00d0156d33bd533"
   }
 }

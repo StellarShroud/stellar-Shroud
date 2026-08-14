@@ -58,10 +58,10 @@ hand).
 
 | Contract            | Address                                                                                                                             |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `shroud_pool`         | [`CDJBRZV6...ABTRXWJQ`](https://stellar.expert/explorer/testnet/contract/CDJBRZV6HTMLO4U4VPK5SF3GBEJV77CZXALWAGJXTTFKADM3ABTRXWJQ) |
+| `shroud_pool`         | [`CBXDMFY3...FRJ7EJTK`](https://stellar.expert/explorer/testnet/contract/CBXDMFY3YZM2SDOGC2DYN2B7DSKPZ7VBQTUAGLVEIOI27FEQFRJ7EJTK) |
 | `asset_registry`      | [`CDASR4RB...A7B64DS5`](https://stellar.expert/explorer/testnet/contract/CDASR4RBML7PNEG3XVN2BD7FNR5XX3NZMFNWGMILJQXCPTWSA7B64DS5) |
-| `nullifier_registry`  | [`CDALY6GL...IIXSXIHK`](https://stellar.expert/explorer/testnet/contract/CDALY6GLLIZA2PCOTUIMNDAUZFR4J5GT2OT44OUY7LJ4E777IIXSXIHK) |
-| `commitment_tree`     | [`CD7ZS5OW...LLBRZLP3`](https://stellar.expert/explorer/testnet/contract/CD7ZS5OWIHD57HNKXZDJLHJ6DTZNFXS3ZPIQI5VFXTR42YEULLBRZLP3) |
+| `nullifier_registry`  | [`CAGMMCCS...WADSJRH5`](https://stellar.expert/explorer/testnet/contract/CAGMMCCSHZNDI4EI7GLGGWCTKHUGVJEOSAQ7H2S7KJOIW7BNWADSJRH5) |
+| `commitment_tree`     | [`CDQG33EO...T7JXPLOZ`](https://stellar.expert/explorer/testnet/contract/CDQG33EO6C6KE7ZXXHQJ57OIAPYCVAXRG4R65RZTNCCBDMXVT7JXPLOZ) |
 | `auditor_registry`    | [`CBXGYPAV...JGGZ5Y5G`](https://stellar.expert/explorer/testnet/contract/CBXGYPAV4LXSLZ7CAS4FTMMEV4HXU5DIKNDBTVNQU62LX7KKJGGZ5Y5G) |
 
 The only asset registered in `asset_registry` right now is native XLM's
@@ -70,9 +70,12 @@ Stellar Asset Contract
 chosen because it needs no issuer setup, not because this is an
 XLM-specific protocol.
 
-Verified round trip (2026-08-14):
-[`approve → deposit`](https://stellar.expert/explorer/testnet/tx/ffdad6ea5bca045174e6fb13f41f56cfa3413ebafe465c40ff4d3ad60a0af646) →
-[`withdraw`](https://stellar.expert/explorer/testnet/tx/f900cc6fcaed239c4221a0d590a295ce54e70a1cca973ac5f81b157ec5c073f5).
+Verified round trips (2026-08-14, see `deployments/testnet.json` for the
+full tx list — `shroud_pool` was redeployed partway through the day to
+add the pause feature below, which cascaded to `nullifier_registry`/
+`commitment_tree` since their admin is the pool's contract address):
+`approve → deposit → withdraw`, and separately,
+`pause → deposit rejected → unpause → deposit succeeds`.
 
 ## Roadmap
 
