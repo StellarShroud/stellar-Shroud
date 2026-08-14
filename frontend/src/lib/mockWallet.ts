@@ -12,6 +12,7 @@
 
 import type {
   AnchorAssetSummary,
+  AuditLogEntry,
   AuditorEntry,
   ShieldedAsset,
   WalletTransaction,
@@ -47,6 +48,21 @@ const anchorSummary: AnchorAssetSummary[] = [
   { code: "EURC", shieldedVolume: 9_200, depositCount: 6, withdrawalCount: 2 },
 ];
 
+const auditLog: AuditLogEntry[] = [
+  {
+    id: "log-1",
+    action: "Registered auditor for USDC",
+    actor: "GACHOR...ANCHOR1",
+    timestamp: Date.now() - 1000 * 60 * 60 * 24 * 3,
+  },
+  {
+    id: "log-2",
+    action: "Disclosed transaction 0x3f9a...c21",
+    actor: "auditor-1",
+    timestamp: Date.now() - 1000 * 60 * 60 * 2,
+  },
+];
+
 function randomReference(): string {
   const bytes = Array.from({ length: 3 }, () =>
     Math.floor(Math.random() * 256)
@@ -70,6 +86,10 @@ export function getAuditors(): AuditorEntry[] {
 
 export function getAnchorSummary(): AnchorAssetSummary[] {
   return anchorSummary;
+}
+
+export function getAuditLog(): AuditLogEntry[] {
+  return [...auditLog].sort((a, b) => b.timestamp - a.timestamp);
 }
 
 /** Moves `amount` from public to shielded balance for `code`. */

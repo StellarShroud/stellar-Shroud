@@ -44,3 +44,10 @@ export interface AnchorAssetSummary {
   depositCount: number;
   withdrawalCount: number;
 }
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  actor: string;
+  timestamp: number;
+}
