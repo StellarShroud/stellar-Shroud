@@ -100,7 +100,7 @@ export async function invokeContract(
   args: xdr.ScVal[],
   sourceAddress: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
+): Promise<{ value: any; hash: string }> {
   const tx = await buildCallTx(contractId, method, args, sourceAddress);
   const prepared = await server.prepareTransaction(tx);
 
@@ -131,5 +131,8 @@ export async function invokeContract(
     throw new Error(`${method} transaction finished with status ${result.status}`);
   }
 
-  return result.returnValue ? scValToNative(result.returnValue) : undefined;
+  return {
+    value: result.returnValue ? scValToNative(result.returnValue) : undefined,
+    hash: sendResult.hash,
+  };
 }
