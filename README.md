@@ -211,6 +211,12 @@ npm run dev
 
 See [`frontend/README.md`](./frontend/README.md).
 
+## Contributing
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the build/test workflow,
+conventions this repo follows, and where to find things to work on
+(short version: [`next.md`](./next.md) is the backlog).
+
 ## License
 
 Dual-licensed under [MIT](./LICENSE-MIT) or [Apache-2.0](./LICENSE-APACHE),

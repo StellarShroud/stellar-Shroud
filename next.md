@@ -104,10 +104,14 @@ say so, and it becomes the next `plan.md` step.
   and PR to `main`. Doesn't catch the class of bug that only surfaced
   on real testnet deployment (see the pause-feature and earlier
   commits) -- that still needs an actual deployment to check.
-- **`CONTRIBUTING.md`** — worth having before inviting outside
-  contributors (e.g. via Stellar Wave, see below), so issue-driven
-  contributions have a place to point to for the build/test workflow
-  instead of reconstructing it from the README.
+- ~~**`CONTRIBUTING.md`**~~ Done: build/test workflow (including the
+  wasm-before-tests ordering CI's first run caught), the
+  types/errors/storage split convention, `TODO(zk)`/`TODO(chain)`
+  markers, and the redeploy-cascade note for `shroud_pool` changes.
+  The scoped-issues half of this item is still open -- no GitHub API
+  token/`gh` CLI available in this environment to file them directly,
+  so they're drafted (not filed) as of this note; see the conversation
+  this was done in for the draft text if it's not yet on GitHub.
 
 ## Docs (per PROJECT.md's `docs/` layout — none of these exist yet)
 
