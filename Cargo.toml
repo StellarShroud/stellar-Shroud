@@ -9,6 +9,9 @@ members = [
     "crypto",
 ]
 
+[workspace.package]
+license = "MIT OR Apache-2.0"
+
 [workspace.dependencies]
 soroban-sdk = "21.7.6"
 

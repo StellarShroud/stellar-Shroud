@@ -198,7 +198,15 @@ See [`frontend/README.md`](./frontend/README.md).
 
 ## License
 
-Not yet chosen. PROJECT.md flags that contract and cryptography components
-need their licensing reviewed separately from the SDK/application layer
-before anything is finalized — see PROJECT.md's License section. Until
-then, treat this as "all rights reserved."
+Dual-licensed under [MIT](./LICENSE-MIT) or [Apache-2.0](./LICENSE-APACHE),
+at your option — the same permissive pattern `soroban-sdk` itself uses, and
+what PROJECT.md's License section suggests for the SDK/application layer.
+Apache-2.0's explicit patent grant is worth having given the crypto/ZK
+surface area here.
+
+This covers the code as it stands today — everything currently marked
+`TODO(zk)` is a placeholder, not production cryptography. PROJECT.md still
+flags that the contract and cryptography components should get a dedicated
+legal review before anything built on a real proving system ships to
+mainnet; this license doesn't preempt that review, it just unblocks
+contribution and experimentation in the meantime.

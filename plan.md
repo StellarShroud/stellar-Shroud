@@ -17,7 +17,9 @@ withdrawals) get validated independently of circuit work.
   `shroud_pool`, `commitment_tree`, `nullifier_registry`, `asset_registry`, `auditor_registry`
 - Each crate: `Cargo.toml` + `src/lib.rs` wired to `soroban-sdk` 21.7.7
 - `README.md` (short, points to `PROJECT.md` for full spec)
-- `LICENSE` — still open (spec flags contract/crypto licensing needs review)
+- `LICENSE` — Resolved: dual MIT/Apache-2.0 (`LICENSE-MIT`, `LICENSE-APACHE`), matching PROJECT.md's own
+  suggestion and the Rust ecosystem norm. PROJECT.md's caveat that contract/crypto components need a
+  dedicated legal review before mainnet still stands -- this unblocks contribution, it doesn't preempt that.
 
 ## Step 2 — Data types & storage ✅
 - `asset_registry`: struct for supported asset (Stellar asset id, anchor, code, status) + admin-gated registration
