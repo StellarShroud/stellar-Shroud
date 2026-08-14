@@ -1,0 +1,26 @@
+{
+  "network": "testnet",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "rpcUrl": "https://soroban-testnet.stellar.org/",
+  "admin": "GDSDRG6PHZGDC7JJJ6ZCXZOWMNZUVNO3K5UZPWKRXA6SDPTQWM6BETSU",
+  "contracts": {
+    "assetRegistry": "CDASR4RBML7PNEG3XVN2BD7FNR5XX3NZMFNWGMILJQXCPTWSA7B64DS5",
+    "nullifierRegistry": "CDALY6GLLIZA2PCOTUIMNDAUZFR4J5GT2OT44OUY7LJ4E777IIXSXIHK",
+    "commitmentTree": "CD7ZS5OWIHD57HNKXZDJLHJ6DTZNFXS3ZPIQI5VFXTR42YEULLBRZLP3",
+    "auditorRegistry": "CBXGYPAV4LXSLZ7CAS4FTMMEV4HXU5DIKNDBTVNQU62LX7KKJGGZ5Y5G",
+    "shroudPool": "CDJBRZV6HTMLO4U4VPK5SF3GBEJV77CZXALWAGJXTTFKADM3ABTRXWJQ"
+  },
+  "supportedAssets": [
+    {
+      "code": "XLM",
+      "assetId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "note": "Native XLM's Stellar Asset Contract, used as the demo asset since it already exists on testnet with no issuer setup required."
+    }
+  ],
+  "verifiedEndToEnd": {
+    "date": "2026-08-14",
+    "flow": "approve -> deposit -> withdraw",
+    "depositTx": "ffdad6ea5bca045174e6fb13f41f56cfa3413ebafe465c40ff4d3ad60a0af646",
+    "withdrawTx": "f900cc6fcaed239c4221a0d590a295ce54e70a1cca973ac5f81b157ec5c073f5"
+  }
+}
