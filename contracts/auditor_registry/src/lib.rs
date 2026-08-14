@@ -5,35 +5,14 @@
 //! disclosed transaction data — the actual encryption/decryption flow
 //! (Phase 4 in PROJECT.md) is not implemented here.
 
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, BytesN, Env};
+mod errors;
+mod storage;
+mod types;
 
-#[contracttype]
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum AuditorStatus {
-    Active,
-    Revoked,
-}
+pub use errors::Error;
+pub use types::{AuditorInfo, AuditorStatus};
 
-#[contracttype]
-#[derive(Clone, Debug)]
-pub struct AuditorInfo {
-    pub anchor: Address,
-    pub public_key: BytesN<32>,
-    pub status: AuditorStatus,
-    pub created_at: u64,
-}
-
-#[contracttype]
-enum DataKey {
-    Auditor(Address),
-}
-
-#[contracterror]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
-pub enum Error {
-    AuditorNotFound = 1,
-    AuditorAlreadyRegistered = 2,
-}
+use soroban_sdk::{contract, contractimpl, Address, BytesN, Env};
 
 #[contract]
 pub struct AuditorRegistry;
@@ -51,8 +30,7 @@ impl AuditorRegistry {
     ) -> Result<(), Error> {
         anchor.require_auth();
 
-        let key = DataKey::Auditor(auditor);
-        if env.storage().persistent().has(&key) {
+        if storage::has_auditor(&env, &auditor) {
             return Err(Error::AuditorAlreadyRegistered);
         }
         let info = AuditorInfo {
@@ -61,45 +39,32 @@ impl AuditorRegistry {
             status: AuditorStatus::Active,
             created_at: env.ledger().timestamp(),
         };
-        env.storage().persistent().set(&key, &info);
+        storage::set_auditor(&env, &auditor, &info);
         Ok(())
     }
 
     pub fn revoke_auditor(env: Env, anchor: Address, auditor: Address) -> Result<(), Error> {
         anchor.require_auth();
 
-        let key = DataKey::Auditor(auditor);
-        let mut info: AuditorInfo = env
-            .storage()
-            .persistent()
-            .get(&key)
-            .ok_or(Error::AuditorNotFound)?;
+        let mut info = storage::get_auditor(&env, &auditor).ok_or(Error::AuditorNotFound)?;
         if info.anchor != anchor {
             // Only the registering anchor can revoke; treat mismatched
             // callers the same as "not found" rather than leaking who owns it.
             return Err(Error::AuditorNotFound);
         }
         info.status = AuditorStatus::Revoked;
-        env.storage().persistent().set(&key, &info);
+        storage::set_auditor(&env, &auditor, &info);
         Ok(())
     }
 
     pub fn get_auditor(env: Env, auditor: Address) -> Result<AuditorInfo, Error> {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Auditor(auditor))
-            .ok_or(Error::AuditorNotFound)
+        storage::get_auditor(&env, &auditor).ok_or(Error::AuditorNotFound)
     }
 
     pub fn is_authorized(env: Env, auditor: Address, anchor: Address) -> bool {
-        match env
-            .storage()
-            .persistent()
-            .get::<_, AuditorInfo>(&DataKey::Auditor(auditor))
-        {
-            Some(info) => info.anchor == anchor && info.status == AuditorStatus::Active,
-            None => false,
-        }
+        storage::get_auditor(&env, &auditor)
+            .map(|info| info.anchor == anchor && info.status == AuditorStatus::Active)
+            .unwrap_or(false)
     }
 }
 
