@@ -66,8 +66,21 @@ impl ShroudPool {
             return Err(Error::UnsupportedAsset);
         }
 
+        // Uses transfer_from (authorized by the *spender*, i.e. this
+        // contract, which self-authorizes) rather than transfer
+        // (authorized by depositor directly): depositor's require_auth
+        // would be a "non-root" authorization -- required deep inside this
+        // call rather than at the top-level invocation -- which the
+        // network's default authorization recording does not support.
+        // depositor must call token.approve(depositor, pool_address,
+        // amount, ...) first so the allowance exists for this to draw on.
         let token_client = token::TokenClient::new(&env, &asset_id);
-        token_client.transfer(&depositor, &env.current_contract_address(), &amount);
+        token_client.transfer_from(
+            &env.current_contract_address(),
+            &depositor,
+            &env.current_contract_address(),
+            &amount,
+        );
 
         let tree_client = commitment_tree_contract::Client::new(&env, &registries.commitment_tree);
         let new_root = tree_client.insert(&commitment);

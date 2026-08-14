@@ -55,6 +55,10 @@ fn setup<'a>() -> TestSetup<'a> {
     let token = TokenClient::new(&env, &asset_id);
     let token_admin = StellarAssetClient::new(&env, &asset_id);
     token_admin.mint(&depositor, &1_000_000);
+    // deposit() draws on this allowance via transfer_from rather than
+    // requiring depositor's live signature inside the nested call -- see
+    // the comment on ShroudPool::deposit for why.
+    token.approve(&depositor, &pool_id, &1_000_000, &1_000_000);
 
     let code = Symbol::new(&env, "USDC");
     asset_registry.register_asset(&asset_id, &anchor, &code);
