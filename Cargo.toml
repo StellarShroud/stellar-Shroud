@@ -6,6 +6,7 @@ members = [
     "contracts/nullifier_registry",
     "contracts/asset_registry",
     "contracts/auditor_registry",
+    "crypto",
 ]
 
 [workspace.dependencies]

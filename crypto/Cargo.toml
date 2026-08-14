@@ -1,0 +1,16 @@
+[package]
+name = "shroud-crypto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "shroud_crypto"
+path = "src/lib.rs"
+
+[dependencies]
+sha2 = "0.10"
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+commitment-tree = { path = "../contracts/commitment_tree", features = ["testutils"] }

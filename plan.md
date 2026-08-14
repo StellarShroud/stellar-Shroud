@@ -43,13 +43,31 @@ withdrawals) get validated independently of circuit work.
 - All pass natively (`cargo test`); all 5 contracts also build cleanly to
   `wasm32-unknown-unknown --release` via the staged build in README.md
 
+## Step 5 — Off-chain crypto primitives (Phase 2, partial) ✅
+- New `crypto/` crate (`shroud-crypto`), plain `std` Rust — this is wallet/prover-side code, not a contract
+- `commitments.rs`: `Note::commitment()`, SHA-256-based (`TODO(zk)`, same caveat as PROJECT.md's Cryptographic Design section)
+- `nullifiers.rs`: `derive_nullifier(secret, note_id)`, SHA-256-based (`TODO(zk)`)
+- `merkle.rs`: off-chain incremental tree mirroring `commitment_tree`'s algorithm (same depth/hash), plus
+  `MerkleTree::proof()` / `MerkleProof::verify()` — the actual membership-proof generation and verification
+  PROJECT.md's Phase 2 calls for, which the on-chain contract intentionally skips (it only tracks roots)
+- Integration test (`crypto/tests/onchain_root_agreement.rs`) proves the off-chain root computation matches
+  the on-chain `commitment_tree` contract's root for an identical insertion sequence — this is the property
+  a wallet's locally-tracked root depends on to build proofs the contract will accept
+- 13 new tests, all passing; 31 total across the workspace
+
 ## Explicitly out of scope for this pass
-- ZK circuit / proof system selection (Phase 2) — real proof verification stays a stub
-- `crypto/`, `sdk/`, `frontend/` directories
+- The actual ZK circuit and proving-system selection (Groth16/Plonk/etc., arkworks/circom/halo2, trusted
+  setup vs. transparent, on-chain verifier cost) — this is a consequential, hard-to-reverse architectural
+  choice with real security/cost tradeoffs and belongs to the user, not a default I should pick unilaterally
+- `sdk/`, `frontend/` directories
 - Auditor encryption/disclosure logic (Phase 4)
 - Testnet deployment
 
 ## Open questions for the user before/while building
-- Soroban SDK version / toolchain already pinned anywhere, or start fresh?
-- Preferred placeholder for "proof" in Step 3 (e.g., a bool flag admin can toggle) so it's obviously not production-ready and easy to grep for later?
+- Soroban SDK version / toolchain already pinned anywhere, or start fresh? — Resolved: 21.7.7, fresh.
+- Preferred placeholder for "proof" in Step 3 — Resolved: `ShroudProof { valid: bool }`, `TODO(zk)` markers.
 - ~~Should `project.md` be renamed to `PROJECT.md`?~~ Done.
+- **Proving system for the actual ZK circuit** (blocks the rest of Phase 2): Groth16 needs a trusted setup
+  but has tiny, cheap-to-verify proofs; Plonk/Halo2 are transparent (no ceremony) but proofs cost more to
+  verify; on-chain verification cost matters a lot here since it runs inside a Soroban contract's compute
+  budget. Need the user's call before writing circuit code.

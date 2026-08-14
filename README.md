@@ -6,11 +6,21 @@ live in [`PROJECT.md`](./PROJECT.md).
 
 ## Status
 
-Early scaffold. This repository currently implements **Phase 1** of the
-roadmap: the Soroban contract state machine (asset registry, nullifier
-registry, commitment tree, auditor registry, shielded pool) with **zero-
-knowledge proof verification stubbed out**. Real proof verification is
-tracked as Phase 2 in `PROJECT.md` and marked with `TODO(zk)` in code.
+Early scaffold. This repository currently implements:
+
+- **Phase 1** — the Soroban contract state machine (asset registry,
+  nullifier registry, commitment tree, auditor registry, shielded pool)
+  with **zero-knowledge proof verification stubbed out**.
+- **Phase 2, partially** — off-chain commitment/nullifier primitives and
+  *real* Merkle membership proof generation + verification in `crypto/`
+  (the on-chain tree only tracks roots; proving a leaf belongs under one
+  is what a wallet/prover needs, and eventually what the ZK circuit
+  constrains). The circuit itself, and which proving system it uses, is
+  not implemented yet.
+
+Real proof verification is tracked as Phase 2 in `PROJECT.md` and marked
+with `TODO(zk)` in code — every commitment/nullifier construction here is
+a placeholder pending that decision.
 
 See [`plan.md`](./plan.md) for the current implementation scope.
 
@@ -23,6 +33,11 @@ contracts/
 ├── nullifier_registry/    double-spend guard
 ├── asset_registry/        which Stellar assets are shieldable
 └── auditor_registry/      anchor-authorized auditor public keys
+
+crypto/
+├── commitments.rs         shielded note commitment (hash-based, TODO(zk))
+├── nullifiers.rs           nullifier derivation (hash-based, TODO(zk))
+└── merkle.rs                off-chain tree mirror + membership proofs
 ```
 
 ## Building
