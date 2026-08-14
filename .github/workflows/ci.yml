@@ -21,18 +21,25 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Run native tests
-        run: cargo test --workspace
-
       # shroud_pool imports the other four contracts' compiled wasm via
       # contractimport! (see contracts/shroud_pool/src/clients.rs) --
       # depending on their Rust source instead links their wasm-exported
       # functions into shroud_pool's own binary and collides. So the
       # leaf contracts must build first, same order as README.md.
+      #
+      # This has to happen *before* `cargo test` too, not just before the
+      # release wasm build: contractimport! runs unconditionally as part
+      # of compiling shroud_pool's lib, which the test binary also
+      # depends on. A workstation with those wasm files already built
+      # from earlier manual runs won't notice this ordering requirement
+      # -- only a clean checkout (like this one) does.
       - name: Build leaf contracts (wasm32v1-none)
         run: |
           cargo build -p asset-registry -p nullifier-registry -p commitment-tree -p auditor-registry \
             --target wasm32v1-none --release
+
+      - name: Run native tests
+        run: cargo test --workspace
 
       - name: Build shroud_pool (wasm32v1-none)
         run: cargo build -p shroud-pool --target wasm32v1-none --release

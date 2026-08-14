@@ -150,13 +150,24 @@ cargo build -p shroud-pool --target wasm32v1-none --release
 
 ## Testing
 
-Native tests don't need the staged wasm build above — each crate's tests
-register the real contract implementation in an in-memory test
-environment:
+Each crate's tests register the real contract implementation in an
+in-memory test environment, not a deployed instance — but `shroud_pool`
+still needs the staged wasm build above to have already happened first.
+Its `contractimport!` calls (see `contracts/shroud_pool/src/clients.rs`)
+run unconditionally as part of compiling `shroud_pool`'s lib, which the
+test binary also depends on — so this only works once the leaf
+contracts' wasm files exist on disk, same as the release wasm build:
 
 ```sh
+cargo build -p asset-registry -p nullifier-registry -p commitment-tree -p auditor-registry \
+    --target wasm32v1-none --release
 cargo test
 ```
+
+A workstation that already has those wasm files built from an earlier
+run won't notice this ordering requirement — only a clean checkout
+does, which is exactly how this got missed here initially (see CI's
+commit history).
 
 31 tests across the workspace: per-contract unit tests, plus an
 integration test (`crypto/tests/onchain_root_agreement.rs`) that deploys
