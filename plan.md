@@ -11,29 +11,37 @@ tested, and reviewable. Building the shielded-pool contracts first with a placeh
 "proof always valid" check lets the state machine (deposits, commitments, nullifiers,
 withdrawals) get validated independently of circuit work.
 
-## Step 1 — Workspace scaffold
+## Step 1 — Workspace scaffold ✅
 - Root `Cargo.toml` as a workspace
 - `contracts/` with 5 member crates per project.md's Project Structure section:
   `shroud_pool`, `commitment_tree`, `nullifier_registry`, `asset_registry`, `auditor_registry`
-- Each crate: `Cargo.toml` + `src/lib.rs` wired to `soroban-sdk`
+- Each crate: `Cargo.toml` + `src/lib.rs` wired to `soroban-sdk` 21.7.7
 - `README.md` (short, points to `PROJECT.md` for full spec)
-- `LICENSE` — leave as open question (spec flags contract/crypto licensing needs review)
+- `LICENSE` — still open (spec flags contract/crypto licensing needs review)
 
-## Step 2 — Data types & storage
+## Step 2 — Data types & storage ✅
 - `asset_registry`: struct for supported asset (Stellar asset id, anchor, code, status) + admin-gated registration
-- `nullifier_registry`: spent-nullifier set + `is_spent` / `mark_spent` with double-spend error
-- `commitment_tree`: minimal Merkle tree storage (root history, leaf insertion) — real membership-proof verification deferred to Phase 2
-- `auditor_registry`: auditor id, pubkey, anchor, status
+- `nullifier_registry`: spent-nullifier set + `is_spent` / `spend` with double-spend error
+- `commitment_tree`: incremental Merkle tree (depth 20, sha256, 30-entry root history) — real membership-proof *verification* deferred to Phase 2, this crate only maintains state
+- `auditor_registry`: auditor id/pubkey/anchor/status, anchor-gated register/revoke
 
-## Step 3 — Shroud pool contract
-- Deposit: pull supported asset in, create commitment, insert into tree, emit event
-- Withdrawal: given a (stubbed) proof + nullifier, check nullifier unspent, mark spent, release asset
-- Wire pool → the other four contracts via cross-contract calls
+## Step 3 — Shroud pool contract ✅
+- Deposit: check supported asset, pull token in via SEP-41 transfer, insert commitment, emit event
+- Withdrawal: check known root + stub proof + unspent nullifier, mark spent, release asset, emit event
+- Transfer: shielded-to-shielded, consumes one nullifier + inserts one output commitment, no token movement
+- Wired pool → the other four contracts via cross-contract calls using `soroban_sdk::contractimport!`
+  against pre-built WASM (see README "Building" — importing another `#[contract]` crate's *Rust source*
+  doesn't work: its wasm-exported functions get linked into your own binary and collide with same-named
+  exports from other imported contracts. `contractimport!` avoids this by reading only the compiled
+  interface.)
 - Events for deposit/withdraw/transfer per project.md's Contract Responsibilities section
 
-## Step 4 — Contract tests
-- Per project.md's Testing Strategy: deposit, withdrawal, double-spend rejection, unsupported-asset rejection, unauthorized-auditor rejection
-- Use `soroban-sdk`'s test utilities, no testnet needed yet
+## Step 4 — Contract tests ✅
+- 18 tests across all 5 crates: asset registration/suspension, nullifier double-spend, Merkle root
+  history, auditor register/revoke, and pool deposit/withdraw/transfer including rejection paths
+  (unsupported asset, invalid proof, double-spend, unknown root)
+- All pass natively (`cargo test`); all 5 contracts also build cleanly to
+  `wasm32-unknown-unknown --release` via the staged build in README.md
 
 ## Explicitly out of scope for this pass
 - ZK circuit / proof system selection (Phase 2) — real proof verification stays a stub

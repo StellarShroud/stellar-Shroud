@@ -1,0 +1,20 @@
+[package]
+name = "shroud-pool"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+asset-registry = { path = "../asset_registry", features = ["testutils"] }
+nullifier-registry = { path = "../nullifier_registry", features = ["testutils"] }
+commitment-tree = { path = "../commitment_tree", features = ["testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]
