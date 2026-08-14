@@ -12,10 +12,16 @@ const kindTone: Record<WalletTransaction["kind"], "success" | "danger" | undefin
   withdraw: "danger",
 };
 
-export function TransactionHistory({ transactions }: { transactions: WalletTransaction[] }) {
+export function TransactionHistory({
+  transactions,
+  title = "Transaction history",
+}: {
+  transactions: WalletTransaction[];
+  title?: string;
+}) {
   return (
     <div className="card">
-      <p className="card-title">Transaction history</p>
+      <p className="card-title">{title}</p>
       {transactions.length === 0 ? (
         <p className="muted">No transactions yet.</p>
       ) : (
