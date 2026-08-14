@@ -55,11 +55,36 @@ withdrawals) get validated independently of circuit work.
   a wallet's locally-tracked root depends on to build proofs the contract will accept
 - 13 new tests, all passing; 31 total across the workspace
 
+## Step 6 — Split each contract into types/errors/storage/lib ✅
+- Per PROJECT.md's Project Structure (`lib.rs`, `storage.rs`, `errors.rs`, `events.rs`, `types.rs`),
+  applied to all 5 contracts. Crates without a meaningful piece skip that file rather than carrying an
+  empty placeholder (e.g. `nullifier_registry` has no custom `contracttype`, so no `types.rs`; only
+  `shroud_pool` publishes events, so it's the only crate with `events.rs`; `shroud_pool` also gets a
+  `clients.rs` for its three `contractimport!` cross-contract client modules)
+- `lib.rs` in every crate is now just the `#[contract]` impl calling into the other modules
+- Verified after each crate: `cargo test -p <crate>` and `cargo build -p <crate> --target
+  wasm32-unknown-unknown --release` both still pass; full workspace re-run at the end (31/31 tests,
+  staged wasm build for all 5 contracts) confirms the refactor changed no behavior
+
+## Step 7 — Frontend demo (Phase 7, partial) ✅
+- Next.js 16 + TypeScript app in `frontend/`, per PROJECT.md's stated stack (bumped off the initial
+  ^15.0.0 pin after `npm audit` flagged high-severity postcss/sharp CVEs in that version range)
+- Three pages matching PROJECT.md's Phase 7 Demo Application: `/` (User Wallet — balance, deposit,
+  shield, send, withdraw, transaction history), `/anchor` (Anchor Dashboard — supported assets,
+  shielded volume, compliance configuration), `/auditor` (Auditor Dashboard — disclosed transactions,
+  audit history)
+- Backed by `src/lib/mockWallet.ts`, in-memory mock state with `TODO(chain)` markers everywhere a real
+  Freighter + Soroban RPC call would go instead — there's no testnet deployment or ZK circuit yet for
+  a real integration to call
+- Verified: `npm run build` succeeds for all three routes with zero warnings; SSR output checked via
+  `curl` against `next dev` for all three pages confirms they render their mock data correctly
+
 ## Explicitly out of scope for this pass
 - The actual ZK circuit and proving-system selection (Groth16/Plonk/etc., arkworks/circom/halo2, trusted
   setup vs. transparent, on-chain verifier cost) — this is a consequential, hard-to-reverse architectural
   choice with real security/cost tradeoffs and belongs to the user, not a default I should pick unilaterally
-- `sdk/`, `frontend/` directories
+- `sdk/` directory
+- Real Freighter wallet integration and Soroban RPC calls from the frontend (needs a testnet deployment first)
 - Auditor encryption/disclosure logic (Phase 4)
 - Testnet deployment
 

@@ -22,6 +22,14 @@ Real proof verification is tracked as Phase 2 in `PROJECT.md` and marked
 with `TODO(zk)` in code — every commitment/nullifier construction here is
 a placeholder pending that decision.
 
+Each contract is split into `types.rs` / `errors.rs` / `storage.rs` (and
+`events.rs` / `hash.rs` / `clients.rs` where relevant) per PROJECT.md's
+Project Structure section, with `lib.rs` left as thin orchestration.
+
+There's also a demo frontend (`frontend/`) — user wallet, anchor
+dashboard, and auditor dashboard, per PROJECT.md's Phase 7 — currently
+running against in-memory mock state rather than a deployed contract.
+
 See [`plan.md`](./plan.md) for the current implementation scope.
 
 ## Layout
@@ -38,6 +46,8 @@ crypto/
 ├── commitments.rs         shielded note commitment (hash-based, TODO(zk))
 ├── nullifiers.rs           nullifier derivation (hash-based, TODO(zk))
 └── merkle.rs                off-chain tree mirror + membership proofs
+
+frontend/                  Next.js demo UI -- see frontend/README.md
 ```
 
 ## Building
@@ -64,3 +74,13 @@ real contract implementation in an in-memory test environment:
 ```sh
 cargo test
 ```
+
+## Frontend
+
+```sh
+cd frontend
+npm install
+npm run dev
+```
+
+See [`frontend/README.md`](./frontend/README.md).
