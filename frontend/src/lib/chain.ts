@@ -25,9 +25,10 @@ import {
   scU32,
 } from "./soroban";
 
-/** A shielded note this wallet deposited and can still withdraw. Kept
- * only in memory -- reloading the page loses it. A real wallet would
- * persist and encrypt this; this is a demo. */
+/** A shielded note this wallet deposited and can still withdraw.
+ * Persisted to localStorage by `notesStore.ts`, keyed by address, so it
+ * survives a page reload -- see that file's TODO(chain) for what a real
+ * wallet would do differently (encrypt `secret` at rest). */
 export interface ShieldedNote {
   amountStroops: number;
   commitment: string;

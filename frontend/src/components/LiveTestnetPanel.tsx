@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { approveAndDeposit, getXlmBalance, withdrawNote, type ShieldedNote } from "@/lib/chain";
+import { loadNotes, saveNotes } from "@/lib/notesStore";
 
 const ONE_XLM_IN_STROOPS = 10_000_000;
 
@@ -20,7 +21,8 @@ function formatStroops(stroops: bigint | number): string {
  * Stellar testnet -- everything else on this page runs against
  * `mockWallet.ts`. Deposits and withdrawals here submit real signed
  * transactions via Freighter against the address in
- * `deployments/testnet.json`.
+ * `deployments/testnet.json`. Notes are persisted per-address via
+ * `notesStore.ts`, so they survive a page reload.
  */
 export function LiveTestnetPanel({ address }: { address: string | null }) {
   const [balance, setBalance] = useState<bigint | null>(null);
@@ -33,8 +35,11 @@ export function LiveTestnetPanel({ address }: { address: string | null }) {
   useEffect(() => {
     if (!address) {
       setBalance(null);
+      setNotes([]);
       return;
     }
+    setNotes(loadNotes(address));
+
     let cancelled = false;
     getXlmBalance(address)
       .then((b) => {
@@ -69,7 +74,9 @@ export function LiveTestnetPanel({ address }: { address: string | null }) {
     setLastTxHash(null);
     try {
       const note = await approveAndDeposit(address, ONE_XLM_IN_STROOPS);
-      setNotes((prev) => [...prev, note]);
+      const updated = [...notes, note];
+      setNotes(updated);
+      saveNotes(address, updated);
       setLastTxHash(note.depositTxHash);
       const fresh = await getXlmBalance(address);
       setBalance(fresh);
@@ -87,7 +94,9 @@ export function LiveTestnetPanel({ address }: { address: string | null }) {
     setLastTxHash(null);
     try {
       await withdrawNote(address, note, address);
-      setNotes((prev) => prev.filter((n) => n.commitment !== note.commitment));
+      const updated = notes.filter((n) => n.commitment !== note.commitment);
+      setNotes(updated);
+      saveNotes(address, updated);
       const fresh = await getXlmBalance(address);
       setBalance(fresh);
     } catch (err) {

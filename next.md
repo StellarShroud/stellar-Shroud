@@ -64,11 +64,11 @@ say so, and it becomes the next `plan.md` step.
   wallet doesn't hold. Real version needs either a recipient public key
   exchange or a relayer pattern. Worth scoping once the ZK circuit
   exists, since a real proof will be required for `transfer` too.
-- **Persist notes across reloads** — `LiveTestnetPanel` holds shielded
-  notes in React state only; refreshing the page loses them (and with
-  them, the ability to withdraw). Needs at minimum `localStorage`
-  persistence, ideally encrypted with a key derived from the connected
-  wallet.
+- ~~**Persist notes across reloads**~~ Done: `frontend/src/lib/notesStore.ts`,
+  localStorage keyed per address. Still stores `note.secret` in the
+  clear -- encrypting it with a key derived from a Freighter signature
+  is flagged as a `TODO(chain)` there rather than done, since it's a
+  real gap, not deferred silently.
 - **Wire Anchor/Auditor dashboards to real chain reads** — both still
   show `mockWallet.ts` data. `asset_registry`/`auditor_registry` reads
   are simple (`readContract`, already have the pattern from
@@ -137,9 +137,10 @@ blocked on the ZK decision).
 ## Suggested order
 
 1. ~~Pause/circuit breaker on `shroud_pool`~~ Done.
-2. ~~CI~~ Done.
-3. Note persistence in the frontend (medium, closes the most visible
-   gap in the "Live testnet" demo)
+2. ~~CI~~ Done (and its own first run caught a real ordering bug — see
+   the "CI reorder" fix in the commit history: native tests need the
+   leaf contracts' wasm built first too, not just the release wasm step).
+3. ~~Note persistence in the frontend~~ Done.
 4. `CONTRIBUTING.md` + a first batch of scoped GitHub issues
 5. Proving-system decision, then the rest of Cryptography/Contracts/SDK
    unblocks from there
