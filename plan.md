@@ -40,8 +40,9 @@ withdrawals) get validated independently of circuit work.
 - 18 tests across all 5 crates: asset registration/suspension, nullifier double-spend, Merkle root
   history, auditor register/revoke, and pool deposit/withdraw/transfer including rejection paths
   (unsupported asset, invalid proof, double-spend, unknown root)
-- All pass natively (`cargo test`); all 5 contracts also build cleanly to
-  `wasm32-unknown-unknown --release` via the staged build in README.md
+- All pass natively (`cargo test`); all 5 contracts also build cleanly to `wasm32v1-none --release`
+  via the staged build in README.md (see Step 8 -- this was `wasm32-unknown-unknown` until testnet
+  deployment surfaced why that target is wrong)
 
 ## Step 5 — Off-chain crypto primitives (Phase 2, partial) ✅
 - New `crypto/` crate (`shroud-crypto`), plain `std` Rust — this is wallet/prover-side code, not a contract
@@ -79,14 +80,51 @@ withdrawals) get validated independently of circuit work.
 - Verified: `npm run build` succeeds for all three routes with zero warnings; SSR output checked via
   `curl` against `next dev` for all three pages confirms they render their mock data correctly
 
+## Step 8 — Deploy to Stellar testnet ✅
+- All 5 contracts deployed and initialized on testnet, addresses recorded in `deployments/testnet.json`
+- Registered native XLM's Stellar Asset Contract as the one supported asset in `asset_registry`
+  (needs no issuer setup, and the deploy/relayer identities already hold real testnet XLM)
+- Found and fixed two real bugs that unit tests structurally could not have caught, because
+  `mock_all_auths*` bypasses exactly the distinctions that broke on a real network:
+  - `nullifier_registry`/`commitment_tree::initialize` required `admin.require_auth()`, but `admin` is
+    the `shroud_pool` *contract* address — no private key exists to satisfy that. Fixed: removed the
+    auth check, relying on the existing one-shot `has_admin` guard instead.
+  - `shroud_pool::deposit` called `token.transfer(depositor, pool, amount)`, which needs depositor's auth
+    for a call *nested* inside `deposit` — the network's default auth recording only covers the root
+    invocation. Fixed: switched to the standard SEP-41 `approve` + `transfer_from` pattern, where
+    `transfer_from` is authorized by *spender* (the pool itself, self-authorizing) instead of `from`.
+- Also found: newer Rust toolchains default to `wasm32-unknown-unknown` + `reference-types` enabled,
+  which Soroban's host wasmi doesn't support -- only surfaced on `auditor_registry` since it's a
+  per-crate codegen decision, not something a target-feature flag reliably fixes. Real fix: build
+  against `wasm32v1-none` (confirmed via `stellar contract build --print-commands-only`), not
+  `wasm32-unknown-unknown` -- README.md updated accordingly, all 5 contracts rebuilt and redeployed.
+- Verified a full `approve → deposit → withdraw` round trip via `stellar contract invoke` against real
+  testnet XLM -- transaction hashes recorded in `deployments/testnet.json`
+
+## Step 9 — Wire the frontend to the real deployment (partial) ✅
+- Added `@stellar/stellar-sdk` + `@stellar/freighter-api`; new `src/lib/soroban.ts` (RPC
+  simulate/sign/submit/poll helpers), `src/lib/notes.ts` (browser-side commitment/nullifier generation
+  mirroring `crypto/`'s Rust logic via Web Crypto), `src/lib/chain.ts` (real `approveAndDeposit` /
+  `withdrawNote`, composed from the above)
+- `WalletConnect` now calls real Freighter (`isConnected`/`requestAccess`/`getAddress`) instead of
+  faking a connected address
+- New `LiveTestnetPanel` on the wallet page: shows the connected wallet's real XLM balance, and can
+  submit real `approve`+`deposit`/`withdraw` transactions against the deployed `shroud_pool`, sitting
+  alongside (not replacing) the existing mock USDC/EURC demo
+- Scoped deliberately tight: shielded-to-shielded transfer stays mocked (constructing a real output note
+  for a recipient this wallet doesn't hold the secret for is genuine SDK work, PROJECT.md Phase 6, not
+  something to improvise here), and the Anchor/Auditor dashboards stay fully mock
+- Verified: `npm run build` + typecheck clean; SSR output checked via `curl` against `next dev` for the
+  not-connected states of both `WalletConnect` and `LiveTestnetPanel`
+
 ## Explicitly out of scope for this pass
 - The actual ZK circuit and proving-system selection (Groth16/Plonk/etc., arkworks/circom/halo2, trusted
   setup vs. transparent, on-chain verifier cost) — this is a consequential, hard-to-reverse architectural
   choice with real security/cost tradeoffs and belongs to the user, not a default I should pick unilaterally
 - `sdk/` directory
-- Real Freighter wallet integration and Soroban RPC calls from the frontend (needs a testnet deployment first)
+- Shielded-to-shielded transfer wired to the real deployment (needs real note/key management -- Phase 6)
 - Auditor encryption/disclosure logic (Phase 4)
-- Testnet deployment
+- Anchor/Auditor dashboards wired to real chain data
 
 ## Open questions for the user before/while building
 - Soroban SDK version / toolchain already pinned anywhere, or start fresh? — Resolved: 21.7.7, fresh.

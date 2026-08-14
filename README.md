@@ -38,8 +38,11 @@ Each contract is split into `types.rs` / `errors.rs` / `storage.rs` (and
 Project Structure section, with `lib.rs` left as thin orchestration.
 
 There's also a demo frontend (`frontend/`) — user wallet, anchor
-dashboard, and auditor dashboard, per PROJECT.md's Phase 7 — currently
-running against in-memory mock state rather than a deployed contract.
+dashboard, and auditor dashboard, per PROJECT.md's Phase 7. Most of it
+runs against in-memory mock state, but the wallet page's "Live testnet"
+card is real: it connects Freighter and submits real signed
+`approve`/`deposit`/`withdraw` transactions against the testnet
+deployment above.
 
 See [`plan.md`](./plan.md) for the current implementation scope.
 
